@@ -16,7 +16,7 @@ Time Spent **3** hours
 2. Also adding more details to the app like showings, rating, etc 
 
 ##Video Walkthrough
-<img src=
+<img src="movieapp.gif" title="Video Walkthrough" width="" alt="Video Walkthrough"/>
 
 ## License
 
