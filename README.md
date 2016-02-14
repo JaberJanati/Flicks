@@ -11,6 +11,7 @@ Time Spent **3** hours
 -User can pull to refresh the movie list
 
 **Additional Features**
+-Added alert that displays when the app is unable to detect internet connectivity
 
 1. I would like to discuss how to auto fit the overview text on the app
 2. Also adding more details to the app like showings, rating, etc 
