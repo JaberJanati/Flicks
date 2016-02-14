@@ -2,7 +2,7 @@
 
 **MovieViewer App** is a movie app using [The Movie Database API] (http://docs.themoviedb.apiary.io/#).
 
-Time Spent **3** hours
+Time Spent **7** hours
 
 ##User Stories
 -User is able to view a list of movies currently being played in theaters from The Movie Database  
