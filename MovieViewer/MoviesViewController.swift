@@ -9,21 +9,30 @@
 import UIKit
 import AFNetworking
 import MBProgressHUD
+import SystemConfiguration
+
 
 class MoviesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
     @IBOutlet weak var tableView: UITableView!
     var movies: [NSDictionary]?
     
-    override func viewDidLoad() {
+    let alert = UIAlertController(title : "Error in Network Connectivity", message : "No internet connection detected", preferredStyle: UIAlertControllerStyle.Alert)
+    
+        override func viewDidLoad() {
         super.viewDidLoad()
-        
+    
+
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: "refreshControlAction:", forControlEvents: UIControlEvents.ValueChanged)
         tableView.insertSubview(refreshControl, atIndex: 0)
         
         tableView.dataSource = self
         tableView.delegate = self
+        
+        //test internet connectivity
+        
+        
         
         let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
         let url = NSURL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
@@ -59,6 +68,13 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     }
     
      func refreshControlAction(refreshControl: UIRefreshControl){
+        
+        if(connectedToNetwork() == false)
+        {
+            presentViewController(alert, animated: true, completion: nil)
+        }
+        else
+        {
         let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
         let url = NSURL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
         let request = NSURLRequest(
@@ -88,7 +104,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
                 }
         })
         task.resume()
-
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -122,6 +138,40 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
             
         print("row\(indexPath.row)")
         return cell
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
+        //runs when there is no internet connectivity
+        if(connectedToNetwork() == false)
+        {
+            let defaultAction = UIAlertAction(title: "Ok", style: .Default, handler: nil)
+            
+            alert.addAction(defaultAction)
+            //displays the alert message
+            presentViewController(alert, animated: true, completion: nil)
+        }
+    }
+    
+    func connectedToNetwork() ->Bool {
+        var zeroAddress = sockaddr_in()
+        zeroAddress.sin_len = UInt8(sizeofValue(zeroAddress))
+        zeroAddress.sin_family = sa_family_t(AF_INET)
+        
+        guard let defaultRouteReachability = withUnsafePointer(&zeroAddress, {
+            SCNetworkReachabilityCreateWithAddress(nil, UnsafePointer($0))
+        }) else {
+            return false
+        }
+        
+        var flags : SCNetworkReachabilityFlags = []
+        if !SCNetworkReachabilityGetFlags(defaultRouteReachability, &flags) {
+            return false
+        }
+        
+        let isReachable = flags.contains(.Reachable)
+        let needsConnection = flags.contains(.ConnectionRequired)
+        return (isReachable && !needsConnection)
     }
 
 

@@ -4,7 +4,7 @@ platform :ios, '8.0'
 use_frameworks!
 
 target 'MovieViewer' do
-    pod 'AFNetworking'
+    pod 'AFNetworking', '~>2.5.4'
     pod 'MBProgressHUD'
 end
 
