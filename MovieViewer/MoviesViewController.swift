@@ -32,49 +32,14 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         
         //test internet connectivity
         
+        networkRequest()
         
-        
-        let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-        let url = NSURL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
-        let request = NSURLRequest(
-            URL: url!,
-            cachePolicy: NSURLRequestCachePolicy.ReloadIgnoringLocalCacheData,
-            timeoutInterval: 10)
-        
-        let session = NSURLSession(
-            configuration: NSURLSessionConfiguration.defaultSessionConfiguration(),
-            delegate: nil,
-            delegateQueue: NSOperationQueue.mainQueue()
-        )
-        MBProgressHUD.showHUDAddedTo(self.view, animated: true)
-        
-        let task: NSURLSessionDataTask = session.dataTaskWithRequest(request,
-            completionHandler: { (dataOrNil, response, error) in
-                MBProgressHUD.hideHUDForView(self.view, animated: true)
-                if let data = dataOrNil {
-                    if let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(
-                        data, options:[]) as? NSDictionary {
-                            print("response: \(responseDictionary)")
-                            self.movies = responseDictionary["results"] as! [NSDictionary]
-                            self.tableView.reloadData()
-                            
-                    }
-                }
-        })
-        task.resume()
-
 
         // Do any additional setup after loading the view.
     }
     
-     func refreshControlAction(refreshControl: UIRefreshControl){
-        
-        if(connectedToNetwork() == false)
-        {
-            presentViewController(alert, animated: true, completion: nil)
-        }
-        else
-        {
+    func networkRequest()
+    {
         let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
         let url = NSURL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
         let request = NSURLRequest(
@@ -98,14 +63,17 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
                             print("response: \(responseDictionary)")
                             self.movies = responseDictionary["results"] as! [NSDictionary]
                             self.tableView.reloadData()
-                            refreshControl.endRefreshing()
                             
                     }
                 }
         })
         task.resume()
-        }
+
     }
+    
+     func refreshControlAction(refreshControl: UIRefreshControl){
+        networkRequest()
+           }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -127,14 +95,16 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         let movie = movies![indexPath.row]
         let title = movie["title"] as! String
         let overview = movie["overview"] as! String
-        let posterPath = movie["poster_path"] as! String
-        
         let baseUrl = "http://image.tmdb.org/t/p/w500/"
-        let imageUrl = NSURL(string: baseUrl + posterPath)
+        if let posterPath = movie["poster_path"] as? String
+        {
+            let imageUrl = NSURL(string: baseUrl + posterPath)
+            cell.posterView.setImageWithURL(imageUrl!)
+        }
         
         cell.titleLabel.text = title
         cell.overviewLabel.text = overview
-        cell.posterView.setImageWithURL(imageUrl!)
+        
             
         print("row\(indexPath.row)")
         return cell
@@ -175,14 +145,22 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     }
 
 
-    /*
+    
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        let cell = sender as! UITableViewCell
+        let indexPath = tableView.indexPathForCell(cell)
+        let movie = movies![indexPath!.row]
+        
+        let detailViewController = segue.destinationViewController as! DetailViewController
+        detailViewController.movie = movie
+        
+        print("prepare for segue");
         // Get the new view controller using segue.destinationViewController.
         // Pass the selected object to the new view controller.
     }
-    */
+    
 
 }
