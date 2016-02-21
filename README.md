@@ -9,9 +9,9 @@ Time Spent **11** hours
 -Poster images are loaded using the UIImageView category in the AFNetworking library  
 -User sees a loading state while waiting for the movies API  
 -User can pull to refresh the movie list 
--Changed Table View to Collection View
--Added Tab Bar functionality for now playing and top rated movies
--Users can tap on a collection view cell and recieve information about the movie
+-Changed Table View to Collection View  
+-Added Tab Bar functionality for now playing and top rated movies  
+-Users can tap on a collection view cell and recieve information about the movie  
 
 **Additional Features**
 
