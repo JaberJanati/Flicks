@@ -21,7 +21,7 @@ Time Spent **11** hours
 
 ##Video Walkthrough
 <img src="collection.gif" title="Video Walkthrough" width="" alt="Video Walkthrough"/>
-
+GIF created with [LiceCap](http://www.cockos.com/licecap/).
 ## License
 
 
