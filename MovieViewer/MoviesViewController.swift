@@ -12,31 +12,36 @@ import MBProgressHUD
 import SystemConfiguration
 
 
-class MoviesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class MoviesViewController:  UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
 
-    @IBOutlet weak var tableView: UITableView!
+    @IBOutlet var collectionView: UICollectionView!
+    @IBOutlet weak var collectionViewCell: ImageCollectionView!
     var movies: [NSDictionary]?
     var endpoint: String!
     
-    let alert = UIAlertController(title : "Error in Network Connectivity", message : "No internet connection detected", preferredStyle: UIAlertControllerStyle.Alert)
     
         override func viewDidLoad() {
         super.viewDidLoad()
     
-
+        //customizes navigation bar
+        self.navigationItem.title = "Flicks"
+            if let navigationBar = navigationController?.navigationBar {
+                navigationBar.setBackgroundImage(UIImage(named: "movieIcon"), forBarMetrics: .Default)
+                
+                navigationBar.tintColor = UIColor.lightGrayColor()
+            }
+            
         let refreshControl = UIRefreshControl()
-        refreshControl.addTarget(self, action: "refreshControlAction:", forControlEvents: UIControlEvents.ValueChanged)
-        tableView.insertSubview(refreshControl, atIndex: 0)
+            refreshControl.addTarget(self, action: "refreshControlAction:", forControlEvents: UIControlEvents.ValueChanged)
+        collectionView.dataSource = self
+        collectionView.delegate = self
         
-        tableView.dataSource = self
-        tableView.delegate = self
-        
-        //test internet connectivity
-        
+        //calls the movie api
         networkRequest()
+        self.collectionView.alwaysBounceVertical = true
         
 
-        // Do any additional setup after loading the view.
+    
     }
     
     func networkRequest()
@@ -61,98 +66,63 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
                 if let data = dataOrNil {
                     if let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(
                         data, options:[]) as? NSDictionary {
-                            print("response: \(responseDictionary)")
                             self.movies = responseDictionary["results"] as! [NSDictionary]
-                            self.tableView.reloadData()
+                            self.collectionView.reloadData()
                             
                     }
                 }
+                print("HELLO")
         })
         task.resume()
 
     }
     
-     func refreshControlAction(refreshControl: UIRefreshControl){
+    func refreshControlAction(refreshControl: UIRefreshControl)
+    {
+        print("I netwokred")
         networkRequest()
-           }
+        print("REFRESHED")
+    }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
     
-    public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if let movies = movies {
-            return movies.count
-        }
-        else{
+    func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+            if let movies = movies {
+                return movies.count
+            }
+            else {
             return 0
         }
     }
     
-    public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("MovieCell", forIndexPath: indexPath) as! MovieCell
-        
-        let movie = movies![indexPath.row]
-        let title = movie["title"] as! String
-        let overview = movie["overview"] as! String
-        let baseUrl = "http://image.tmdb.org/t/p/w500/"
-        if let posterPath = movie["poster_path"] as? String
-        {
-            let imageUrl = NSURL(string: baseUrl + posterPath)
-            cell.posterView.setImageWithURL(imageUrl!)
-        }
-        
-        cell.titleLabel.text = title
-        cell.overviewLabel.text = overview
-        
-            
-        print("row\(indexPath.row)")
-        return cell
-    }
     
-    override func viewDidAppear(animated: Bool) {
-        super.viewDidAppear(animated)
-        //runs when there is no internet connectivity
-        if(connectedToNetwork() == false)
-        {
-            let defaultAction = UIAlertAction(title: "Ok", style: .Default, handler: nil)
+        func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
             
-            alert.addAction(defaultAction)
-            //displays the alert message
-            presentViewController(alert, animated: true, completion: nil)
+            let cell = collectionView.dequeueReusableCellWithReuseIdentifier("mainstory", forIndexPath: indexPath) as! ImageCollectionView  
+            
+            let movie = movies![indexPath.row]
+            let baseUrl = "http://image.tmdb.org/t/p/w500/"
+            if let posterPath = movie["poster_path"] as? String
+            {
+                let imageUrl = NSURL(string: baseUrl + posterPath)
+                cell.posterView.setImageWithURL(imageUrl!)
+            }
+            return cell
+            
         }
-    }
     
-    func connectedToNetwork() ->Bool {
-        var zeroAddress = sockaddr_in()
-        zeroAddress.sin_len = UInt8(sizeofValue(zeroAddress))
-        zeroAddress.sin_family = sa_family_t(AF_INET)
-        
-        guard let defaultRouteReachability = withUnsafePointer(&zeroAddress, {
-            SCNetworkReachabilityCreateWithAddress(nil, UnsafePointer($0))
-        }) else {
-            return false
-        }
-        
-        var flags : SCNetworkReachabilityFlags = []
-        if !SCNetworkReachabilityGetFlags(defaultRouteReachability, &flags) {
-            return false
-        }
-        
-        let isReachable = flags.contains(.Reachable)
-        let needsConnection = flags.contains(.ConnectionRequired)
-        return (isReachable && !needsConnection)
-    }
-
+    
 
     
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        let cell = sender as! UITableViewCell
-        let indexPath = tableView.indexPathForCell(cell)
+        let cell = sender as! UICollectionViewCell
+        let indexPath = collectionView.indexPathForCell(cell)
         let movie = movies![indexPath!.row]
         
         let detailViewController = segue.destinationViewController as! DetailViewController
